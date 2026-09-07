@@ -1,0 +1,70 @@
+{
+  "name": "runic-client",
+  "version": "1.0.2",
+  "description": "RunicMC Launcher - Launcher y cliente de Minecraft",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "node scripts/ensure-bmp.js && electron-builder --win",
+    "dist:dir": "node scripts/ensure-bmp.js && electron-builder --win --dir"
+  },
+  "keywords": [
+    "minecraft",
+    "launcher",
+    "runic"
+  ],
+  "author": "RunicMC",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^38.0.0",
+    "electron-builder": "^26.15.3"
+  },
+  "dependencies": {
+    "minecraft-launcher-core": "^3.18.2"
+  },
+  "build": {
+    "appId": "com.runicmc.client",
+    "productName": "Runic Client",
+    "copyright": "Copyright Â© 2026 RunicMC",
+    "directories": {
+      "output": "dist",
+      "buildResources": "assets/icons"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "app.js",
+      "index.html",
+      "styles.css",
+      "services/**/*",
+      "assets/**/*",
+      "!assets/icons/icon-master.png",
+      "!**/*.md"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "assets/icons/icon.ico",
+      "artifactName": "Runic-Client-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Runic Client",
+      "uninstallDisplayName": "Runic Client",
+      "deleteAppDataOnUninstall": false,
+      "include": "assets/installer.nsh",
+      "artifactName": "Runic-Client-Setup-${version}.${ext}"
+    }
+  }
+}

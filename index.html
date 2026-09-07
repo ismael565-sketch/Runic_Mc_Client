@@ -1,0 +1,963 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Runic Client</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- ============================================================
+     OVERLAY DE BIENVENIDA (pantalla tipo Discord/Opera GX)
+     ============================================================ -->
+  <div class="welcome-overlay" id="welcome-overlay">
+    <div class="welcome-rect">
+      <img class="welcome-logo" src="assets/icons/logo.png" alt="Runic Client" draggable="false">
+      <span class="welcome-version" id="welcome-version">v1.0.2</span>
+      <div class="welcome-bar"></div>
+    </div>
+  </div>
+  <script>
+    document.addEventListener("visibilitychange", () => {
+      document.body.classList.toggle("app-hidden", document.hidden);
+    });
+
+    // Ocultar la pantalla de bienvenida cuando el cliente está listo (3s)
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => {
+        const overlay = document.getElementById('welcome-overlay');
+        if (!overlay) return;
+        overlay.classList.add('hidden');
+        setTimeout(() => overlay.remove(), 700);
+      }, 3000);
+    });
+  </script>
+  <!-- ============================================================
+     AMBIENT BACKGROUND
+     ============================================================ -->
+  <div class="ambient-bg">
+    <div class="ambient-bg-img" id="bg-image"></div>
+    <div class="ambient-bg-overlay"></div>
+    <div class="ambient-gradient-layer"></div>
+    <div class="ambient-gradient-layer"></div>
+    <div class="ambient-particles" id="particles-container"></div>
+  </div>
+  <!-- ============================================================
+       APP LAYOUT
+       ============================================================ -->
+  <div class="app-layout">
+    <!-- TITLE BAR -->
+    <header class="titlebar" id="titlebar">
+      <div class="titlebar-drag"></div>
+      <div class="titlebar-controls" id="window-controls">
+        <button class="titlebar-btn" id="btn-minimize" aria-label="Minimizar">
+          <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+        <button class="titlebar-btn" id="btn-maximize" aria-label="Maximizar">
+          <svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></svg>
+        </button>
+        <button class="titlebar-btn close" id="btn-close" aria-label="Cerrar">
+          <svg viewBox="0 0 24 24"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+        </button>
+      </div>
+    </header>
+    <!-- BODY -->
+    <div class="app-body">
+      <!-- SIDEBAR -->
+      <nav class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <img class="sidebar-logo" src="assets/icons/logo.png" alt="Runic Client">
+          <span class="sidebar-brand-name">Runic Client</span>
+          <span class="sidebar-brand-ver" id="sidebar-brand-ver">v1.0.2</span>
+        </div>
+        <div class="sidebar-nav">
+          <div class="nav-group-label">Juego</div>
+          <button class="nav-item active" data-page="home" title="Inicio">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24"><path d="M3 12l9-9 9 9"/><path d="M5 10v10a1 1 0 001 1h3a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h3a1 1 0 001-1V10"/></svg>
+            </span>
+            <span class="nav-label">Inicio</span>
+          </button>
+          <button class="nav-item" data-page="instances" title="Instancias">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            </span>
+            <span class="nav-label">Instancias</span>
+          </button>
+          <div class="nav-group-label">Comunidad</div>
+          <button class="nav-item" data-page="servers" title="Servidores">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+            </span>
+            <span class="nav-label">Servidores</span>
+          </button>
+          <button class="nav-item" data-page="mods" title="Mods">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+            </span>
+            <span class="nav-label">Mods</span>
+          </button>
+          <button class="nav-item" data-page="modpacks" title="Modpacks">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7l8.7 5 8.7-5"/><line x1="12" y1="22" x2="12" y2="12"/></svg>
+            </span>
+            <span class="nav-label">Modpacks</span>
+          </button>
+          <div class="nav-group-label">Sistema</div>
+          <button class="nav-item" data-page="profile" title="Perfil">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </span>
+            <span class="nav-label">Perfil</span>
+          </button>
+          <button class="nav-item" data-page="settings" title="Ajustes">
+            <span class="nav-icon">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+            </span>
+            <span class="nav-label">Ajustes</span>
+          </button>
+        </div>
+        <div class="sidebar-profile" id="sidebar-profile">
+          <div class="sidebar-avatar">U</div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-username">Usuario</div>
+            <div class="sidebar-status">Conectado</div>
+          </div>
+        </div>
+      </nav>
+      <!-- MAIN CONTENT -->
+      <main class="main-content">
+        <!-- ==============================
+             PAGE: HOME
+             ============================== -->
+        <section class="page active" id="page-home">
+          <!-- FRANJA DE JUGADOR -->
+          <div class="player-strip">
+            <div class="player-avatar-wrap">
+              <canvas id="player-avatar" width="8" height="8"></canvas>
+              <span class="player-status-dot"></span>
+            </div>
+            <div class="player-meta">
+              <span class="player-name" id="home-player-name">Usuario</span>
+              <span class="player-rank">Runic Player · En línea</span>
+            </div>
+            <div class="player-chips">
+              <span class="stat-chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <b id="chip-playtime">0h</b>&nbsp;jugadas
+              </span>
+              <span class="stat-chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                <b id="chip-instances">0</b>&nbsp;instancias
+              </span>
+              <span class="stat-chip">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
+                <b id="chip-servers">6</b>&nbsp;servers
+              </span>
+            </div>
+          </div>
+          <!-- PANEL DE JUEGO -->
+          <div class="hero-section">
+            <div class="hero-card">
+              <div class="hero-card-bg">
+                <div class="hero-card-overlay"></div>
+              </div>
+              <div class="hero-content">
+                <div class="hero-brand-col">
+                  <div class="hero-badge">
+                    <span class="hero-badge-dot"></span>
+                    Listo para jugar
+                  </div>
+                  <div class="hero-brand">
+                    <img class="hero-logo" src="assets/icons/logo.png" alt="Runic Client" draggable="false">
+                    <span class="hero-version" id="hero-version">v1.0.2</span>
+                  </div>
+                  <p class="hero-subtitle">Elige tu versión y modloader favoritos y entra al juego en segundos. Tus mundos, mods y servidores siempre listos.</p>
+                </div>
+                <div class="hero-play-col">
+                  <button class="btn btn-play btn-lg" id="btn-play-hero">
+                    <svg class="btn-icon" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3" fill="currentColor" stroke="none"/></svg>
+                    <span class="btn-text">Jugar ahora</span>
+                  </button>
+                  <div class="version-select" id="version-select-hero">
+                    <button class="version-select-btn">
+                      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+                      <span id="selected-version">1.21.4</span>
+                      <svg viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div class="version-dropdown" id="version-dropdown-hero"></div>
+                  </div>
+                  <div class="loader-selector" id="loader-selector">
+                    <div class="loader-selector-label">ModLoader</div>
+                    <div class="loader-selector-btns">
+                      <button class="loader-btn active" data-loader="vanilla" title="Vanilla (sin mods)">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="2"/></svg>
+                        <span>Vanilla</span>
+                      </button>
+                      <button class="loader-btn" data-loader="fabric" title="Fabric Loader">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        <span>Fabric</span>
+                      </button>
+                      <button class="loader-btn" data-loader="forge" title="Minecraft Forge">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z" fill="currentColor"/></svg>
+                        <span>Forge</span>
+                      </button>
+                      <button class="loader-btn" data-loader="neoforge" title="NeoForge">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M4 4h16v2H4zm0 4h16v2H4zm0 4h16v2H4zm0 4h10v2H4z" fill="currentColor"/></svg>
+                        <span>NeoForge</span>
+                      </button>
+                      <button class="loader-btn pvp-loader" data-loader="runicpvp" title="Runic Client PvP — cliente optimizado para PvP (1.8.9)">
+                      <svg viewBox="0 0 24 24" width="18" height="18"><path d="M6.9 17.1L3 21l1-4L14.5 6.5l3 3zM16 4l2-2c.6-.6 1.7-.5 2.4.2l1.4 1.4c.7.7.8 1.8.2 2.4l-2 2z" fill="currentColor"/></svg>
+                      <span>Runic PvP</span>
+                    </button>
+                    <button class="loader-btn" data-loader="optifine" title="OptiFine">
+                        <svg viewBox="0 0 24 24" width="18" height="18"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor"/></svg>
+                        <span>OptiFine</span>
+                      </button>
+                    </div>
+                    <div class="loader-version-select" id="loader-version-select" style="display:none">
+                      <div class="loader-version-select-inner">
+                        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor"/></svg>
+                        <select id="loader-version-dropdown">
+                          <option value="">Seleccionando versiones...</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- ÚLTIMOS SERVIDORES -->
+          <div class="recent-row" id="recent-row" style="display:none">
+            <div class="section-header">
+              <h2 class="section-title">Servidores destacados</h2>
+              <button class="section-action" onclick="navigateTo('servers')">Ver todos</button>
+            </div>
+            <div class="recent-chips" id="recent-chips"></div>
+          </div>
+          <!-- NOVEDADES -->
+          <div class="news-mini" id="news-mini" style="display:none">
+            <div class="section-header"><h2 class="section-title">Novedades</h2></div>
+            <div class="news-list" id="news-list"></div>
+          </div>
+          <div class="home-featured-row">
+            <div class="quick-actions">
+              <div class="section-header">
+                <h2 class="section-title">Accesos rápidos</h2>
+              </div>
+              <div class="quick-grid">
+                <button class="quick-card" id="qa-new-instance">
+                  <span class="quick-icon">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="3"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+                  </span>
+                  <span class="quick-title">Nueva instancia</span>
+                  <span class="quick-desc">Crea una instalación separada con su propio modloader</span>
+                </button>
+                <button class="quick-card" id="qa-servers">
+                  <span class="quick-icon">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="13" width="18" height="7" rx="2"/><line x1="7" y1="7.5" x2="7" y2="7.5"/><line x1="7" y1="16.5" x2="7" y2="16.5"/></svg>
+                  </span>
+                  <span class="quick-title">Servidores</span>
+                  <span class="quick-desc">Mira el estado de los servidores destacados y conéctate</span>
+                </button>
+                <button class="quick-card" id="qa-open-folder">
+                  <span class="quick-icon">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                  </span>
+                  <span class="quick-title">Carpeta del juego</span>
+                  <span class="quick-desc">Abre la carpeta donde viven mundos, mods y versiones</span>
+                </button>
+                <button class="quick-card" id="qa-updates">
+                  <span class="quick-icon">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><polyline points="21 3 21 8 16 8"/></svg>
+                  </span>
+                  <span class="quick-title">Buscar actualizaciones</span>
+                  <span class="quick-desc">Comprueba si hay una versión nueva del launcher</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+        <!-- ==============================
+             PAGE: SERVERS
+             ============================== -->
+        <section class="page" id="page-servers">
+          <div class="content-header">
+            <div>
+              <h1 class="content-title">Servidores</h1>
+              <p class="content-subtitle">Explorador con estado en tiempo real, favoritos y búsqueda</p>
+            </div>
+          </div>
+          <div class="toolbar">
+            <div class="toolbar-search">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="srv-search" placeholder="Buscar servidor..." spellcheck="false">
+            </div>
+            <select class="select-input" id="srv-filter">
+              <option value="all">Todos</option>
+              <option value="fav">Favoritos</option>
+              <option value="online">En línea</option>
+            </select>
+            <select class="select-input" id="srv-sort">
+              <option value="default">Orden por defecto</option>
+              <option value="ping">Menor ping</option>
+              <option value="players">Más jugadores</option>
+              <option value="name">Nombre (A-Z)</option>
+            </select>
+          </div>
+          <div class="section-header">
+            <h2 class="section-title">Destacados</h2>
+            <button class="btn btn-glass btn-sm" id="btn-refresh-servers">Actualizar estado</button>
+          </div>
+          <div class="servers-grid" id="servers-grid"></div>
+          <div class="section-header">
+            <h2 class="section-title">Modos de juego</h2>
+            <span class="badge badge-soon">Próximamente</span>
+          </div>
+          <div class="cards-grid cards-grid-3">
+            <div class="card modpack-card card-disabled">
+              <div class="modpack-card-image">
+                <div class="modpack-card-image-placeholder">⚔</div>
+              </div>
+              <div class="modpack-card-info">
+                <div class="modpack-card-title">SkyWars</div>
+                <div class="modpack-card-desc">Combate en islas flotantes. Recoge recursos y elimina a tus oponentes.</div>
+              </div>
+              <div class="modpack-card-footer">
+                <span class="modpack-card-version">Próximamente</span>
+                <button class="btn btn-glass btn-sm" disabled>Notificarme</button>
+              </div>
+            </div>
+            <div class="card modpack-card card-disabled">
+              <div class="modpack-card-image">
+                <div class="modpack-card-image-placeholder">✦</div>
+              </div>
+              <div class="modpack-card-info">
+                <div class="modpack-card-title">OneBlock</div>
+                <div class="modpack-card-desc">Supervivencia extrema desde un solo bloque. Expande tu isla y sobrevive.</div>
+              </div>
+              <div class="modpack-card-footer">
+                <span class="modpack-card-version">Próximamente</span>
+                <button class="btn btn-glass btn-sm" disabled>Notificarme</button>
+              </div>
+            </div>
+            <div class="card modpack-card card-disabled">
+              <div class="modpack-card-image">
+                <div class="modpack-card-image-placeholder">◆</div>
+              </div>
+              <div class="modpack-card-info">
+                <div class="modpack-card-title">Practice PvP</div>
+                <div class="modpack-card-desc">Entrena tus habilidades PvP con duelos, ladder y estadísticas detalladas.</div>
+              </div>
+              <div class="modpack-card-footer">
+                <span class="modpack-card-version">Próximamente</span>
+                <button class="btn btn-glass btn-sm" disabled>Notificarme</button>
+              </div>
+            </div>
+          </div>
+        </section>
+        <!-- ==============================
+             PAGE: INSTANCES
+             ============================== -->
+        <section class="page" id="page-instances">
+          <div class="content-header">
+            <div>
+              <h1 class="content-title">Instancias</h1>
+              <p class="content-subtitle">Opcional: carpetas totalmente separadas por versión o modpack. Si juegas desde Inicio, todas las versiones comparten mundos, configs y mods.</p>
+            </div>
+            <button class="btn btn-primary" id="btn-create-instance">
+              <svg viewBox="0 0 24 24" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Crear instancia
+            </button>
+          </div>
+          <div class="section-header">
+            <h2 class="section-title">Mis instancias</h2>
+            <span class="text-muted text-sm" id="instances-count"></span>
+          </div>
+          <div class="instances-grid" id="instances-grid"></div>
+          <div class="section-header">
+            <h2 class="section-title">Versiones destacadas</h2>
+            <span class="text-muted text-sm" id="detected-count"></span>
+          </div>
+          <p class="text-muted text-sm" style="margin-top:-8px;margin-bottom:12px;">Estas versiones ya están instaladas en tu PC (fuera del launcher). Puedes jugarlas directamente o convertirlas en instancia.</p>
+          <div class="cards-grid versions-grid" id="detected-grid"></div>
+        </section>
+        <!-- ==============================
+             PAGE: MODS
+             ============================== -->
+                <section class="page" id="page-mods">
+          <div class="content-header">
+            <div>
+              <h1 class="content-title">Descubrir</h1>
+              <p class="content-subtitle">Contenido de Modrinth listo para instalar en tus instancias</p>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <div class="settings-tabs">
+              <button class="settings-tab active" data-mtype="mod">Mods</button>
+              <button class="settings-tab" data-mtype="modpack">Modpacks</button>
+              <button class="settings-tab" data-mtype="shader">Shaders</button>
+              <button class="settings-tab" data-mtype="resourcepack">Texturas</button>
+            </div>
+            <div class="toolbar-search">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="mods-search" placeholder="Buscar..." spellcheck="false">
+            </div>
+            <select class="select-input" id="mods-gameversion">
+              <option value="">Cualquier version</option>
+              <option value="1.21.4">1.21.4</option>
+              <option value="1.21.1">1.21.1</option>
+              <option value="1.20.4">1.20.4</option>
+              <option value="1.20.1">1.20.1</option>
+              <option value="1.19.4">1.19.4</option>
+              <option value="1.19.2">1.19.2</option>
+              <option value="1.18.2">1.18.2</option>
+              <option value="1.16.5">1.16.5</option>
+              <option value="1.12.2">1.12.2</option>
+              <option value="1.8.9">1.8.9</option>
+            </select>
+          </div>
+
+          <div class="catalog-grid" id="mods-grid"></div>
+          <div class="empty-state" id="mods-empty" style="display:none">
+            <span class="empty-state-title">Sin resultados</span>
+            <span class="empty-state-desc">Prueba otra busqueda o cambia la version.</span>
+          </div>
+        </section>
+        <!-- ==============================
+             PAGE: MODPACKS
+             ============================== -->
+        <section class="page" id="page-modpacks">
+          <div class="content-header">
+            <div>
+              <h1 class="content-title">Modpacks</h1>
+              <p class="content-subtitle">Colecciones completas listas para instalar con un clic</p>
+            </div>
+          </div>
+          <div class="catalog-grid" id="packs-grid"></div>
+          <div class="empty-state" id="packs-empty" style="display:none">
+            <span class="empty-state-title">Aún no tienes modpacks</span>
+            <span class="empty-state-desc">Se instalan desde Descubrir → Modpacks creando su propia instancia automáticamente.</span>
+            <button class="btn btn-primary btn-sm" onclick="navigateTo('mods')">Explorar packs</button>
+          </div>
+          <div class="empty-state" id="modpacks-empty">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><path d="M3.3 7l8.7 5 8.7-5"/><line x1="12" y1="22" x2="12" y2="12"/></svg>
+            <span class="empty-state-title">Catálogo en preparación</span>
+            <span class="empty-state-desc">Próximamente podrás instalar packs curados desde aquí. El catálogo se alimentará del mismo servidor de actualizaciones que ya configuras en Ajustes.</span>
+          </div>
+        </section>
+        <!-- ==============================
+             PAGE: SETTINGS
+             ============================== -->
+        <section class="page" id="page-settings">
+          <div class="content-header">
+            <div>
+              <h1 class="content-title">Ajustes</h1>
+              <p class="content-subtitle">Configura tu experiencia de juego</p>
+            </div>
+          </div>
+          <div class="settings-toolbar">
+            <div class="settings-tabs">
+              <button class="settings-tab" data-tab="general">General</button>
+              <button class="settings-tab active" data-tab="game">Juego</button>
+              <button class="settings-tab" data-tab="account">Cuenta</button>
+            </div>
+            <div class="settings-search">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="settings-search" placeholder="Buscar ajustes..." spellcheck="false">
+            </div>
+          </div>
+          <div class="settings-section">
+            <div class="settings-pane active" data-pane="game">
+            <div class="settings-group">
+              <h3 class="settings-group-title">Minecraft</h3>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-label">Memoria RAM asignada</div>
+                  <div class="settings-row-desc" id="ram-hint">Cantidad de RAM dedicada a Minecraft</div>
+                </div>
+                <div class="settings-row-control flex items-center gap-8">
+                  <input type="range" class="slider-input" min="1" max="16" value="4" step="0.5">
+                  <span class="text-sm text-muted ram-value-text">4 GB</span>
+                </div>
+              </div>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-label">Versión de Java</div>
+                  <div class="settings-row-desc">Automático elige el Java adecuado según la versión de Minecraft</div>
+                </div>
+                <div class="settings-row-control">
+                  <select class="select-input" id="java-select">
+                    <option value="auto">Automático (Recomendado)</option>
+                    <option value="java21">Java 21</option>
+                    <option value="java17">Java 17</option>
+                    <option value="java8">Java 8</option>
+                    <option value="java">JAVA_HOME</option>
+                  </select>
+                </div>
+              </div>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-label">Java detectado en tu equipo</div>
+                  <div class="settings-row-desc">Escaneo rápido de runtimes instalados</div>
+                </div>
+                <div class="settings-row-control">
+                  <span class="java-chip" id="java-chip">Analizando...</span>
+                </div>
+              </div>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-label">Carpetas Java adicionales</div>
+                  <div class="settings-row-desc" id="java-paths-desc">Si no detectamos tu Java, indica dónde lo tienes instalado</div>
+                </div>
+                <div class="settings-row-control flex items-center gap-8">
+                  <button class="btn btn-glass btn-sm" id="btn-add-java-path">Añadir carpeta</button>
+                  <button class="btn btn-ghost btn-sm text-danger" id="btn-clear-java-paths" style="display:none">Quitar todas</button>
+                </div>
+              </div>
+              <div class="settings-row" id="java-paths-row" style="display:none">
+                <div class="java-paths-list" id="java-paths-list"></div>
+              </div>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-label">Descargar Java</div>
+                  <div class="settings-row-desc">Si no tienes Java, dónde descargarlo (Adoptium Temurin)</div>
+                </div>
+                <div class="settings-row-control">
+                  <button class="btn btn-glass btn-sm" id="btn-download-java">Abrir Adoptium</button>
+                </div>
+              </div>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-label">Resolución de ventana</div>
+                  <div class="settings-row-desc">Tamaño de la ventana del juego al iniciar</div>
+                </div>
+                <div class="settings-row-control">
+                  <select class="select-input">
+                    <option>Pantalla completa</option>
+                    <option>1920 x 1080</option>
+                    <option>1280 x 720</option>
+                    <option>854 x 480</option>
+                  </select>
+                </div>
+              </div>
+              <div class="settings-row no-border-bottom">
+                <div>
+                  <div class="settings-row-label">Carpeta del juego</div>
+                  <div class="settings-row-desc" id="game-dir-desc">Abrir o cambiar la carpeta donde se almacena Minecraft</div>
+                </div>
+                <div class="settings-row-control flex items-center gap-8">
+                  <button class="btn btn-glass btn-sm" id="btn-open-game-dir">Abrir carpeta</button>
+                  <button class="btn btn-glass btn-sm" id="btn-choose-game-dir">Cambiar carpeta</button>
+                </div>
+              </div>
+            </div>
+            </div> <!-- /pane game -->
+            <div class="settings-pane" data-pane="general">
+            <div class="settings-group">
+              <h3 class="settings-group-title">Launcher</h3>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-label">Iniciar minimizado</div>
+                  <div class="settings-row-desc">El launcher se inicia en la bandeja del sistema</div>
+                </div>
+                <div class="settings-row-control">
+                  <label class="toggle">
+                    <input type="checkbox">
+                    <span class="toggle-track"></span>
+                  </label>
+                </div>
+              </div>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-label">Minimizar a la bandeja del sistema</div>
+                  <div class="settings-row-desc">La X oculta el launcher a la bandeja (sigue en segundo plano); al abrir Minecraft también se minimiza ahí</div>
+                </div>
+                <div class="settings-row-control">
+                  <label class="toggle">
+                    <input type="checkbox" id="toggle-tray" checked>
+                    <span class="toggle-track"></span>
+                  </label>
+                </div>
+              </div>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-label">Inicio rápido del juego</div>
+                  <div class="settings-row-desc">Abre Minecraft más rápido (menos FPS durante los primeros minutos)</div>
+                </div>
+                <div class="settings-row-control">
+                  <label class="toggle">
+                    <input type="checkbox" id="toggle-fastboot">
+                    <span class="toggle-track"></span>
+                  </label>
+                </div>
+              </div>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-label">Skins Ely.by en el juego</div>
+                  <div class="settings-row-desc">Inyecta el sistema de skins de Ely.by (authlib-injector) para ver las skins y capas publicadas de todos los jugadores</div>
+                </div>
+                <div class="settings-row-control">
+                  <label class="toggle">
+                    <input type="checkbox" id="toggle-authlib" checked>
+                    <span class="toggle-track"></span>
+                  </label>
+                </div>
+              </div>
+              
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-label">Sonidos del cliente</div>
+                  <div class="settings-row-desc">Efectos de audio en clics, navegación, errores y al abrir el launcher</div>
+                </div>
+                <div class="settings-row-control">
+                  <label class="toggle">
+                    <input type="checkbox" id="toggle-sounds" checked>
+                    <span class="toggle-track"></span>
+                  </label>
+                </div>
+              </div>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-label">URL de actualizaciones</div>
+                  <div class="settings-row-desc">JSON con {"version","url"} hosteado donde quieras; el cliente comprobará e instalará la última versión sin perder tus datos</div>
+                </div>
+              </div>
+              <div class="profile-name-row">
+                <input type="text" class="text-input" id="update-url-input" placeholder="https://miservidor.com/runic/update.json" spellcheck="false">
+                <button class="btn btn-glass btn-sm" id="btn-save-update-url">Guardar</button>
+              </div>
+              <div class="profile-name-row">
+                <button class="btn btn-primary btn-sm" id="btn-check-updates">Buscar actualizaciones</button>
+                <span class="update-status-text" id="update-status-text">Versión actual: ...</span>
+              </div>
+            </div>
+            </div>
+            <div class="settings-pane" data-pane="account">
+            <div class="settings-group">
+              <h3 class="settings-group-title">Cuenta Microsoft (Premium)</h3>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-label">Client ID de Azure</div>
+                  <div class="settings-row-desc">Requerido para premium. Portal Azure → App registrations → New registration → "Public client/native". Copia el Application (client) ID.</div>
+                </div>
+              </div>
+              <div class="profile-name-row">
+                <input type="text" class="text-input" id="ms-client-id" placeholder="Client ID (GUID)" spellcheck="false">
+                <button class="btn btn-glass btn-sm" id="btn-ms-save-cid">Guardar</button>
+              </div>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-label">Sesion</div>
+                  <div class="settings-row-desc" id="ms-session-desc">Sin sesion premium.</div>
+                </div>
+                <div class="settings-row-control flex items-center gap-8">
+                  <button class="btn btn-primary btn-sm" id="btn-ms-login">Iniciar sesion con Microsoft</button>
+                  <button class="btn btn-ghost btn-sm" id="btn-ms-cancel" style="display:none">Cancelar</button>
+                  <button class="btn btn-ghost btn-sm" id="btn-ms-logout" style="display:none">Cerrar sesion</button>
+                </div>
+              </div>
+              <div id="ms-code-box" style="display:none;padding:14px;border-radius:12px;background:var(--runic-bg-tertiary);border:1px solid var(--runic-glass-border-hover);margin-bottom:8px;">
+                <div class="text-sm text-muted">Abre <b>minecraft.com/link</b> y escribe el codigo:</div>
+                <div style="font-size:26px;font-weight:800;letter-spacing:4px;color:var(--runic-gold-bright);margin:6px 0;" id="ms-user-code">------</div>
+                <button class="btn btn-glass btn-sm" id="btn-ms-open-link">Abrir pagina de Microsoft</button>
+                <span class="text-sm text-muted" id="ms-login-state" style="margin-left:10px;"></span>
+              </div>
+              <p class="note-text">Con sesion activa, JUGAR usara tu cuenta premium automaticamente (servers online, skin oficial). Tu contrasena jamas pasa por este cliente.</p>
+            </div>
+
+            <div class="settings-group">
+              <h3 class="settings-group-title">Cuentas</h3>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-label">Cuenta activa</div>
+                  <div class="settings-row-desc">Selecciona la cuenta para jugar</div>
+                </div>
+                <div class="settings-row-control">
+                  <select class="select-input" id="account-select"></select>
+                </div>
+              </div>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-label">Añadir cuenta</div>
+                  <div class="settings-row-desc">Agrega un nuevo nombre de usuario offline</div>
+                </div>
+                <div class="settings-row-control">
+                  <button class="btn btn-glass btn-sm" id="btn-add-account">Añadir</button>
+                </div>
+              </div>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-label">Skin de la cuenta (Ely.by)</div>
+                  <div class="settings-row-desc">Escribe tu nick de Ely.by para usar su skin en el juego y en el launcher</div>
+                </div>
+                <div class="settings-row-control flex items-center gap-8">
+                  <input type="text" class="text-input" id="elyby-nick-input" maxlength="16" placeholder="Nick en Ely.by" spellcheck="false" style="width:150px">
+                  <button class="btn btn-glass btn-sm" id="btn-save-elyby">Guardar</button>
+                </div>
+              </div>
+              <div class="settings-row no-border-bottom" id="row-remove-account">
+                <div>
+                  <div class="settings-row-label">Eliminar cuenta</div>
+                  <div class="settings-row-desc">Elimina la cuenta seleccionada</div>
+                </div>
+                <div class="settings-row-control">
+                  <button class="btn btn-ghost btn-sm text-danger" id="btn-remove-account" style="opacity:0.4">Eliminar</button>
+                </div>
+              </div>
+            </div>
+              </div> <!-- /pane account -->
+          </div>
+        </section>
+        <!-- ==============================
+             PAGE: PROFILE
+             ============================== -->
+        <section class="page" id="page-profile">
+          <div class="profile-header">
+            <canvas id="profile-skin-canvas" width="16" height="32" title="Tu skin actual"></canvas>
+            <div class="profile-head-info">
+              <h1 class="profile-name" id="profile-display-name">Usuario</h1>
+              <p class="profile-role">Runic Player · En línea</p>
+            </div>
+          </div>
+          <div class="pstats-grid">
+            <div class="pstat">
+              <span class="pstat-value accent" id="stat-playtime">0h</span>
+              <span class="pstat-label">Tiempo jugado</span>
+            </div>
+            <div class="pstat">
+              <span class="pstat-value" id="stat-modes">0</span>
+              <span class="pstat-label">Instaladas</span>
+            </div>
+            <div class="pstat">
+              <span class="pstat-value" id="stat-versions">0</span>
+              <span class="pstat-label">Versiones</span>
+            </div>
+            <div class="pstat">
+              <span class="pstat-value" id="stat-servers">0</span>
+              <span class="pstat-label">Servidores</span>
+            </div>
+          </div>
+          <div style="padding: 0 var(--sp-6) var(--sp-5)">
+            <div class="section-header"><h2 class="section-title">Actividad reciente</h2></div>
+            <div class="activity-list" id="activity-list"></div>
+          </div>
+          <div class="settings-section padding-top-0">
+            <div class="settings-group">
+              <h3 class="settings-group-title">Perfil &amp; Nombre</h3>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-label">Nombre de usuario</div>
+                  <div class="settings-row-desc">Es el nombre con el que Minecraft se abrirá dentro del juego</div>
+                </div>
+              </div>
+              <div class="profile-name-row">
+                <input type="text" class="text-input" id="profile-username-input" maxlength="16" placeholder="Escribe tu nombre" spellcheck="false">
+                <button class="btn btn-primary btn-sm" id="btn-save-username">Guardar nombre</button>
+              </div>
+              <div class="profile-java-row" id="profile-java-row">
+                <span class="java-dot" id="profile-java-dot"></span>
+                <span id="profile-java-text">Analizando Java...</span>
+              </div>
+            </div>
+                        <div class="settings-group">
+              <h3 class="settings-group-title">Tu skin</h3>
+              <div class="skin-editor">
+                <div class="skin-previews">
+                  <div class="skin-preview-box">
+                    <canvas id="skin-preview-body" width="160" height="320"></canvas>
+                    <span class="skin-preview-label">Previsualización</span>
+                  </div>
+                </div>
+                <div class="skin-actions-col">
+                  <p class="note-text">Por defecto usas <b>Steve</b>. Sube un PNG de skin (64x64 o 64x32) para personalizar tu personaje en el launcher.</p>
+                  <div class="skin-row">
+                    <div>
+                      <div class="settings-row-label">Skin local</div>
+                      <div class="settings-row-desc" id="skin-status-desc">Steve por defecto</div>
+                    </div>
+                    <div class="skin-row-btns">
+                      <button class="btn btn-primary btn-sm" id="btn-upload-skin">Subir skin</button>
+                      <button class="btn btn-ghost btn-sm text-danger" id="btn-clear-skin" style="display:none">Quitar</button>
+                    </div>
+                  </div>
+                  <h3 class="settings-group-title" style="margin-top:18px;">Que todos la vean en el juego</h3>
+                  <div class="settings-row-desc" style="margin-bottom:8px;">Crea gratis tu cuenta en ely.by, vincula tu nick y tu skin se verá para TODOS los jugadores de Runic Client dentro del juego.</div>
+                  <div class="profile-name-row">
+                    <input type="text" class="text-input" id="profile-elyby-input" placeholder="Tu nick de Ely.by" spellcheck="false">
+                    <button class="btn btn-glass btn-sm" id="btn-save-elyby">Guardar nick</button>
+                  </div>
+                  <div class="skin-row-btns" style="margin-top:10px;">
+                    <button class="btn btn-gold btn-sm" id="btn-publish-elyby">Publicar skin en Ely.by</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+<div class="settings-group">
+              <h3 class="settings-group-title">Jugar online</h3>
+              <div class="settings-row">
+                <div>
+                  <div class="settings-row-label">Conexión directa a servidores</div>
+                  <div class="settings-row-desc">Guarda la IP de los servidores a los que juegas y conéctate con un clic</div>
+                </div>
+              </div>
+              <div class="profile-name-row">
+                <input type="text" class="text-input" id="input-server-ip" placeholder="IP del servidor (ej. play.runic.net)" spellcheck="false">
+                <button class="btn btn-gold btn-sm" id="btn-add-server">Añadir servidor</button>
+              </div>
+              <div class="servers-list" id="servers-list"></div>
+              <p class="note-text">Nota: este cliente usa modo offline (por nombre). Funciona en servidores con online-mode=false. Para servidores que exigen cuenta Microsoft (online-mode=true) necesitarías una cuenta legítima de Minecraft.</p>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+  <!-- ============================================================
+       LAUNCH OVERLAY
+       ============================================================ -->
+  <div class="launch-overlay" id="launch-overlay">
+    <div class="launch-overlay-card">
+      <div class="launch-brand">
+        <div class="launch-spinner"></div>
+        <span>Runic Launcher</span>
+      </div>
+      <div class="launch-steps" id="launch-steps">
+        <span class="lstep active">Java</span><i></i>
+        <span class="lstep">Archivos</span><i></i>
+        <span class="lstep">ModLoader</span><i></i>
+        <span class="lstep">Iniciando</span>
+      </div>
+      <div class="launch-task" id="launch-task">Preparando...</div>
+      <div class="launch-progress"><div class="launch-progress-bar" id="launch-progress-bar"></div></div>
+      <div class="launch-subtask" id="launch-subtask"></div>
+      <div class="launch-actions">
+        <button class="btn btn-glass btn-sm" id="btn-cancel-launch" style="visibility:hidden">Cancelar</button>
+        <button class="btn btn-gold btn-sm" id="btn-copy-log" style="display:none">Copiar log</button>
+      </div>
+    </div>
+  </div>
+  <!-- ============================================================
+       MODAL: CREAR INSTANCIA
+       ============================================================ -->
+  <div class="modal-overlay" id="modal-create-instance">
+    <div class="modal-card">
+      <h2 class="modal-title">Crear instancia</h2>
+      <p class="modal-subtitle">Cada instancia guarda sus mundos, mods y configuración por separado.</p>
+      <div class="modal-field">
+        <label class="modal-label">Nombre de la instancia</label>
+        <input type="text" class="text-input" id="instance-name-input" maxlength="32" placeholder="Ej. Survival 1.20.1 con mods" spellcheck="false">
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Versión de Minecraft</label>
+        <select class="select-input" id="instance-mc-version"></select>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">ModLoader</label>
+        <select class="select-input" id="instance-loader-type">
+          <option value="vanilla">Vanilla (sin mods)</option>
+          <option value="fabric">Fabric</option>
+          <option value="forge">Forge</option>
+          <option value="neoforge">NeoForge</option>
+          <option value="optifine">OptiFine</option>
+        </select>
+      </div>
+      <div class="modal-field" id="instance-loader-ver-field" style="display:none">
+        <label class="modal-label">Versión del loader</label>
+        <select class="select-input" id="instance-loader-ver"></select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" id="btn-cancel-instance">Cancelar</button>
+        <button class="btn btn-primary" id="btn-confirm-instance">Crear e instalar</button>
+      </div>
+    </div>
+  </div>
+  <!-- ============================================================
+       MODAL: CUENTA INICIAL (tras el tutorial)
+       ============================================================ -->
+  <div class="modal-overlay" id="modal-first-account">
+    <div class="modal-card modal-card-center">
+      <h2 class="modal-title">Crea tu cuenta</h2>
+      <p class="modal-subtitle">Elige tu nombre de usuario. Opcionalmente, vincula tu nick de Ely.by para usar tu skin.</p>
+      <div class="first-account-preview">
+        <canvas id="first-account-skin-canvas" width="64" height="64"></canvas>
+        <div class="first-account-avatar-wrap"><div class="first-account-avatar" id="first-account-avatar">?</div></div>
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Nombre de usuario</label>
+        <input type="text" class="text-input" id="first-account-name" maxlength="16" placeholder="Tu nombre en el juego" spellcheck="false">
+      </div>
+      <div class="modal-field">
+        <label class="modal-label">Nick de Ely.by (opcional — para tu skin)</label>
+        <input type="text" class="text-input" id="first-account-elyby" maxlength="16" placeholder="Ej. Notch" spellcheck="false">
+      </div>
+      <p class="note-text" id="first-account-note">Sin skin de Ely.by usarás el skin por defecto de Minecraft.</p>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="btn-confirm-first-account">Empezar a jugar</button>
+      </div>
+    </div>
+  </div>
+  <!-- ============================================================
+       MODAL GENÉRICO: confirmar / pedir texto / elegir opción
+       (sustituye a los confirm() y prompt() nativos)
+       ============================================================ -->
+  <!-- MODAL DETALLE CATALOGO/SERVER -->
+  <div class="modal-overlay" id="modal-detail">
+    <div class="detail-card">
+      <button class="detail-close" id="detail-close" aria-label="Cerrar">✕</button>
+      <div class="detail-head">
+        <img class="detail-icon" id="detail-icon" alt="">
+        <div class="detail-titles">
+          <h2 class="detail-title" id="detail-title">—</h2>
+          <div class="detail-meta" id="detail-meta"></div>
+        </div>
+      </div>
+      <div class="detail-body" id="detail-body">
+        <div class="detail-gallery" id="detail-gallery" style="display:none"></div>
+        <div class="detail-section"><h3>Descripción</h3><div class="detail-desc" id="detail-desc">Cargando...</div></div>
+        <div class="detail-section" id="detail-yt-sec" style="display:none"><h3>Tráiler</h3><div class="yt-frame" id="detail-yt"></div></div>
+        <div class="detail-section" id="detail-deps-sec" style="display:none"><h3>Dependencias</h3><div id="detail-deps"></div></div>
+        <div class="detail-section">
+          <div class="detail-ver-head"><h3>Versiones</h3>
+            <select class="select-input" id="detail-gv"><option value="">Cualquier versión</option></select>
+          </div>
+          <div class="detail-loaders" id="detail-loaders"></div>
+          <div class="detail-vers" id="detail-vers">Cargando...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modal-generic">
+    <div class="modal-card">
+      <h2 class="modal-title" id="generic-title"></h2>
+      <p class="modal-subtitle" id="generic-message" style="white-space:pre-line"></p>
+      <div class="modal-field" id="generic-input-field" style="display:none">
+        <input type="text" class="text-input" id="generic-input" spellcheck="false">
+      </div>
+      <div class="generic-choices" id="generic-choices" style="display:none"></div>
+      <div class="modal-actions" id="generic-actions"></div>
+    </div>
+  </div>
+  <!-- ============================================================
+       TOUR GUIADO
+       ============================================================ -->
+  <div class="tour-overlay" id="tour-overlay" style="display:none">
+    <div class="tour-spotlight" id="tour-spotlight"></div>
+    <div class="tour-card" id="tour-card">
+      <div class="tour-step-counter" id="tour-step-counter">Paso 1 de 5</div>
+      <h3 class="tour-title" id="tour-title">Bienvenido</h3>
+      <p class="tour-text" id="tour-text"></p>
+      <div class="tour-actions">
+        <button class="btn btn-ghost btn-sm" id="btn-tour-skip">Saltar tutorial</button>
+        <button class="btn btn-primary btn-sm" id="btn-tour-next">Siguiente</button>
+      </div>
+    </div>
+  </div>
+  <!-- CONTENEDOR DE NOTIFICACIONES -->
+  <div class="notif-stack" id="notif-stack" aria-live="polite"></div>
+  <script src="app.js"></script>
+</body>
+</html>
